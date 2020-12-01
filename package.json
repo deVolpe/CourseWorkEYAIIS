@@ -1,0 +1,30 @@
+{
+  "name": "courseworkeyaiis",
+  "version": "1.0.0",
+  "description": "Beta version of dimploma",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deVolpe/CourseWorkEYAIIS.git"
+  },
+  "author": "Vladimir Chekel",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/deVolpe/CourseWorkEYAIIS/issues"
+  },
+  "homepage": "https://github.com/deVolpe/CourseWorkEYAIIS#readme",
+  "dependencies": {
+    "axios": "^0.21.0",
+    "cheerio": "^1.0.0-rc.3",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "json2csv": "^5.0.5"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.6"
+  }
+}
