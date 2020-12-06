@@ -2,10 +2,10 @@
   "name": "courseworkeyaiis",
   "version": "1.0.0",
   "description": "Beta version of dimploma",
-  "main": "index.js",
+  "main": "app.js",
   "type": "module",
   "scripts": {
-    "start": "node index"
+    "start": "node app"
   },
   "repository": {
     "type": "git",
@@ -22,7 +22,8 @@
     "cheerio": "^1.0.0-rc.3",
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "json2csv": "^5.0.5"
+    "json2csv": "^5.0.5",
+    "lodash": "^4.17.20"
   },
   "devDependencies": {
     "nodemon": "^2.0.6"
