@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import fs from 'fs';
 import timetableRoutes from './routes/timetable.js';
 
 const app = express();
@@ -10,8 +11,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 
-app.get('/', (req, res) => {
-	res.redirect('/api/routes/timetable');
+app.get('/', (req, res) => res.redirect('/api/routes/timetable'));
+app.get('/download', (req, res) => {
+	console.log(fs.readdir(__dirname));
 });
 
 app.use('/api/routes', timetableRoutes);

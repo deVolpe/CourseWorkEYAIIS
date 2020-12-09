@@ -55,7 +55,14 @@ const getTransportClosestDateTimeArriving = async (
 			next = html[1].children[0].data.trim(),
 			after = html[2].children[0].data.trim();
 
-		return { ...params, next, prev, after };
+		return {
+			...params,
+			next,
+			prev,
+			after,
+			station: decodeURIComponent(params.station),
+			path: decodeURIComponent(params.path),
+		};
 	} catch (e) {
 		throw new Error(e);
 	}
