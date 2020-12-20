@@ -12,9 +12,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 
 app.get('/', (req, res) => res.redirect('/api/routes/timetable'));
-app.get('/download', (req, res) => {
-	console.log(fs.readdir(__dirname));
-});
 
 app.use('/api/routes', timetableRoutes);
 

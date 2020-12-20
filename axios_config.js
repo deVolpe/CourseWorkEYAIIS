@@ -2,5 +2,5 @@ import axios from 'axios';
 
 export default axios.create({
 	baseURL: 'https://kogda.by/routes/',
-	timeout: 10000,
+	timeout: 12000,
 });

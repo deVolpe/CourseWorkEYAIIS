@@ -30,7 +30,7 @@ const getAllTransportPathStations = async (
 			stations = [];
 		for (let i = 0; i < html.length; i++) {
 			const href = html[i].attribs.href;
-			stations.push(href.replace(url, ''));
+			stations.push(href.replace(axios.defaults.baseURL + url, ''));
 		}
 		return { ...params, stations };
 	} catch (e) {
@@ -49,8 +49,9 @@ const getTransportClosestDateTimeArriving = async (
 	const url = `${params.city}/${params.type}/${params.path}/${params.station}`;
 	try {
 		const res = await axios(url),
-			$ = cheerio.load(res.data),
-			html = $('div.timetable>span'),
+			$ = cheerio.load(res.data);
+		console.log($('div.timetable>span')[0]);
+		const html = $('div.timetable>span'),
 			prev = html[0].children[0].data.trim(),
 			next = html[1].children[0].data.trim(),
 			after = html[2].children[0].data.trim();

@@ -36,24 +36,31 @@ const getTimetable = async (req, res) => {
 			const _result = await Promise.all(
 				_paths.map((path) => getAllTransportPathStations({ city, type, path }))
 			);
-			_stations.push(..._result);
-		} else _stations.push({ city, type, path: _path, station: _station });
-
-		Promise.all(_stations.map((s) => getTransportClosestDateTimeArriving(s)))
-			.then((data) => {
-				const asyncParser = AsyncParser(opts, transformOpts);
-				asyncParser.processor.pipe(
-					fs.createWriteStream(path.resolve(__dirname, id + '.csv'))
+			_result.forEach(({ city, path, type, stations }) => {
+				_stations.push(
+					...stations.map((station) => ({ city, type, path, station }))
 				);
-				for (const _data of data) {
-					asyncParser.input.push(_data);
-				}
-			})
-			.catch((err) => errorHandler(res, err));
-		res.json({ status: 'Queued', id: new Date().getTime() });
+			});
+		} else _stations.push({ city, type, path: _path, station: _station });
+		const data = await Promise.all(
+			_stations.map((s) => getTransportClosestDateTimeArriving(s))
+		);
+
+		const asyncParser = new AsyncParser(opts, transformOpts);
+		asyncParser.processor.pipe(fs.createWriteStream(`./${id}.csv`));
+
+		for (const _data of data) {
+			asyncParser.input.push(JSON.stringify(_data));
+		}
+		return res.json({ status: 'Uploaded', id });
 	} catch (e) {
 		errorHandler(res, e);
 	}
 };
 
-export { getTimetable };
+const downloadTimetable = (req, res) => {
+	const { id } = req.query;
+	res.download(path.resolve(__dirname, `${id}.csv`));
+};
+
+export { getTimetable, downloadTimetable };
