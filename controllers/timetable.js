@@ -60,7 +60,20 @@ const getTimetable = async (req, res) => {
 
 const downloadTimetable = (req, res) => {
 	const { id } = req.query;
-	res.download(path.resolve(__dirname, `${id}.csv`));
+	res.download(`./${id}.csv`).end();
 };
 
-export { getTimetable, downloadTimetable };
+const getJobStatus = (req, res) => {
+	const { id } = req.query;
+	console.log(req.headers);
+	console.log(req);
+	fs.readFile(`./${id}.csv`, (err, data) => {
+		if (err) {
+			return res.json({ status: 'In Processing', id });
+		}
+
+		res.json({ status: 'Completed', id });
+	});
+};
+
+export { getTimetable, downloadTimetable, getJobStatus };
