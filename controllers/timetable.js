@@ -1,6 +1,5 @@
 import { AsyncParser } from 'json2csv';
 import fs from 'fs';
-import path from 'path';
 import errorHandler from '../utils/errorHandler.js';
 import {
 	getAllTransportPaths,
@@ -47,7 +46,9 @@ const getTimetable = async (req, res) => {
 		);
 
 		const asyncParser = new AsyncParser(opts, transformOpts);
-		asyncParser.processor.pipe(fs.createWriteStream(`./${id}.csv`));
+		asyncParser.processor.pipe(
+			fs.createWriteStream(`./${new Date(id).toISOString()}.csv`)
+		);
 
 		for (const _data of data) {
 			asyncParser.input.push(JSON.stringify(_data));
@@ -60,14 +61,12 @@ const getTimetable = async (req, res) => {
 
 const downloadTimetable = (req, res) => {
 	const { id } = req.query;
-	res.download(`./${id}.csv`).end();
+	res.download(`./${new Date(id).toISOString()}.csv`).end();
 };
 
 const getJobStatus = (req, res) => {
 	const { id } = req.query;
-	console.log(req.headers);
-	console.log(req);
-	fs.readFile(`./${id}.csv`, (err, data) => {
+	fs.readFile(`./${new Date(id).toISOString()}.csv`, (err, data) => {
 		if (err) {
 			return res.json({ status: 'In Processing', id });
 		}
