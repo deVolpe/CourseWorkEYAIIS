@@ -50,7 +50,7 @@ const getTransportClosestDateTimeArriving = async (
 	try {
 		const res = await axios(url),
 			$ = cheerio.load(res.data);
-		console.log($('div.timetable>span')[0]);
+
 		const html = $('div.timetable>span'),
 			prev = html[0].children[0].data.trim(),
 			next = html[1].children[0].data.trim(),
