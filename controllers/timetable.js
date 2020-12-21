@@ -46,7 +46,9 @@ const getTimetable = async (req, res) => {
 
 		const asyncParser = new AsyncParser(opts, transformOpts);
 		asyncParser.processor.pipe(
-			fs.createWriteStream(`./${new Date(id).toISOString()}.csv`)
+			fs.createWriteStream(`./${new Date(id).toISOString()}.csv`, {
+				encoding: 'utf-8',
+			})
 		);
 
 		processBatch(iter, asyncParser);
@@ -66,29 +68,39 @@ const getTimetable = async (req, res) => {
 const processBatch = (iter, parser) => {
 	const batch = iter.next();
 
-	getTransportClosestDateTimeArriving(batch.value)
-		.then((data) => {
-			parser.input.push(JSON.stringify(data));
+	if (!batch.done) {
+		getTransportClosestDateTimeArriving(batch.value)
+			.then((data) => {
+				parser.input.push(JSON.stringify(data));
 
-			if (!batch.done) processBatch(iter, parser);
-		})
-		.catch(console.error);
+				if (!batch.done) processBatch(iter, parser);
+			})
+			.catch(console.error);
+	}
 };
 
 const downloadTimetable = (req, res) => {
-	const { id } = req.query;
-	res.download(`./${new Date(+id).toISOString()}.csv`);
+	try {
+		const { id } = req.query;
+		res.download(`./${new Date(+id).toISOString()}.csv`);
+	} catch (e) {
+		errorHandler(res, e);
+	}
 };
 
 const getJobStatus = (req, res) => {
-	const { id } = req.query;
-	fs.readFile(`./${new Date(+id).toISOString()}.csv`, (err, data) => {
-		if (err) {
-			return res.json({ status: 'In Processing', id });
-		}
+	try {
+		const { id } = req.query;
+		fs.readFile(`./${new Date(+id).toISOString()}.csv`, (err, data) => {
+			if (err) {
+				return res.json({ status: 'In Processing', id });
+			}
 
-		res.json({ status: 'Completed', id });
-	});
+			res.json({ status: 'Completed', id });
+		});
+	} catch (e) {
+		errorHandler(res, e);
+	}
 };
 
 export { getTimetable, downloadTimetable, getJobStatus };

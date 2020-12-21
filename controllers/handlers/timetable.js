@@ -52,9 +52,9 @@ const getTransportClosestDateTimeArriving = async (
 			$ = cheerio.load(res.data);
 
 		const html = $('div.timetable>span'),
-			prev = html[0].children[0].data.trim(),
-			next = html[1].children[0].data.trim(),
-			after = html[2].children[0].data.trim();
+			prev = html[0] ? html[0].children[0].data.trim() : '',
+			next = html[1] ? html[1].children[0].data.trim() : '',
+			after = html[2] ? html[2].children[0].data.trim() : '';
 
 		return {
 			...params,
