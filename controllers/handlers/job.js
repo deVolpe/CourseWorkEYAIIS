@@ -24,35 +24,45 @@ class Job {
 			_stations = [];
 
 		const allTransportParams = { city: this.city, type: this.type };
-		if (!this.path) {
-			const result = await getAllTransportPaths(allTransportParams);
-			paths.push(...result.paths.map((p) => encodeURIComponent(p)));
-		} else paths.push(encodeURIComponent(this.path));
 
-		if (!this.station) {
-			const result = await Promise.all(
-				paths.map((path) => getAllTransportPathStations({ ...allTransportParams, path }))
+		try {
+			if (!this.path) {
+				const result = await getAllTransportPaths(allTransportParams);
+				paths.push(...result.paths.map((p) => encodeURIComponent(p)));
+			} else paths.push(encodeURIComponent(this.path));
+
+			if (!this.station) {
+				const result = await Promise.all(
+					paths.map((path) => getAllTransportPathStations({ ...allTransportParams, path }))
+				);
+				result.forEach(({ city, path, type, stations }) => {
+					_stations.push(...stations.map((station) => ({ city, type, path, station })));
+				});
+			} else _stations.push({ ...allTransportParams, path: this.path, station: this.station });
+
+			const asyncParser = new AsyncParser(opts, transformOpts);
+
+			asyncParser.processor.pipe(
+				fs.createWriteStream(`./${this.pid}.csv`, {
+					encoding: 'utf-8',
+				})
 			);
-			result.forEach(({ city, path, type, stations }) => {
-				_stations.push(...stations.map((station) => ({ city, type, path, station })));
-			});
-		} else _stations.push({ ...allTransportParams, path: this.path, station: this.station });
 
-		const asyncParser = new AsyncParser(opts, transformOpts);
-
-		asyncParser.processor.pipe(
-			fs.createWriteStream(`./${this.pid}.csv`, {
-				encoding: 'utf-8',
-			})
-		);
-
-		for (const station of _stations) {
-			const data = await getTransportClosestDateTimeArriving(station);
-			asyncParser.input.push(JSON.stringify(data));
+			for (const station of _stations) {
+				const data = await getTransportClosestDateTimeArriving(station);
+				asyncParser.input.push(JSON.stringify(data));
+			}
+		} catch (error) {
+			throw { message: error.message || error };
 		}
 	};
 }
 
-new Job().run().then(() => {
-	process.exit(0);
-});
+new Job()
+	.run()
+	.then(() => {
+		process.exit(0);
+	})
+	.catch((err) => {
+		process.exit(1);
+	});
