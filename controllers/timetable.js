@@ -1,102 +1,50 @@
-import { AsyncParser } from 'json2csv';
-import fs from 'fs';
+import { exec } from 'child_process';
 import errorHandler from '../utils/errorHandler.js';
-import {
-	getAllTransportPaths,
-	getAllTransportPathStations,
-	getTransportClosestDateTimeArriving,
-} from './handlers/timetable.js';
 import { validateQueryString } from './validators/query.js';
 
-const fields = ['city', 'type', 'path', 'station', 'prev', 'next', 'after'];
-const opts = { fields };
-const transformOpts = { highWaterMark: 8192 };
-
-const getTimetable = async (req, res) => {
-	const { errors, isValid } = validateQueryString(req.query);
+const getTimetable = (req, res) => {
+	const { errors, isValid } = validateQueryString({ ...req.query, ...req.body });
 
 	if (!isValid) {
 		res.status(400).json(errors).end();
 	}
-	const id = new Date().getTime();
+
 	try {
-		const { city, type, path, station } = req.query,
-			_paths = [],
-			_stations = [],
-			_path = encodeURIComponent(path),
-			_station = encodeURIComponent(station);
-
-		if (!path) {
-			const _result = await getAllTransportPaths({ city, type });
-			_paths.push(..._result.paths);
-		} else _paths.push(_path);
-
-		if (!station) {
-			const _result = await Promise.all(
-				_paths.map((path) => getAllTransportPathStations({ city, type, path }))
-			);
-			_result.forEach(({ city, path, type, stations }) => {
-				_stations.push(
-					...stations.map((station) => ({ city, type, path, station }))
-				);
-			});
-		} else _stations.push({ city, type, path: _path, station: _station });
-
-		const iter = _stations[Symbol.iterator]();
-
-		const asyncParser = new AsyncParser(opts, transformOpts);
-		asyncParser.processor.pipe(
-			fs.createWriteStream(`./${new Date(id).toISOString()}.csv`, {
-				encoding: 'utf-8',
-			})
-		);
-
-		processBatch(iter, asyncParser);
-		// const data = await Promise.all(
-		// 	_stations.map((s) => getTransportClosestDateTimeArriving(s))
-		// );
-
-		// for (const _data of data) {
-		// 	asyncParser.input.push(JSON.stringify(_data));
-		// }
-		return res.json({ status: 'Uploaded', id });
+		const execFilePath = 'handlers/job';
+		const args = [];
+		args.push(req.query?.city || req.body?.city);
+		args.push(req.query?.type || req.body?.type);
+		args.push(req.query?.path || req.body?.path);
+		args.push(req.query?.station || req.body?.station);
+		const spawnProcess = spawn('node', [execFilePath, ...args]);
+		return res.json({ status: 'Uploaded', id: spawnProcess.pid });
 	} catch (e) {
 		errorHandler(res, e);
 	}
 };
 
-const processBatch = (iter, parser) => {
-	const batch = iter.next();
-
-	if (!batch.done) {
-		getTransportClosestDateTimeArriving(batch.value)
-			.then((data) => {
-				parser.input.push(JSON.stringify(data));
-
-				if (!batch.done) processBatch(iter, parser);
-			})
-			.catch(console.error);
-	}
-};
-
 const downloadTimetable = (req, res) => {
+	const id = req.query?.id || req.body?.id;
+	if (id) return res.status(400).json({ status: 'Error', message: 'Id must be not null, undefined or empty string' });
 	try {
-		const { id } = req.query;
-		res.download(`./${new Date(+id).toISOString()}.csv`);
+		res.download(`./${id}.csv`);
 	} catch (e) {
 		errorHandler(res, e);
 	}
 };
 
 const getJobStatus = (req, res) => {
+	const id = req.query?.id || req.body?.id;
+	if (id) return res.status(400).json({ status: 'Error', message: 'Id must be not null, undefined or empty string' });
 	try {
-		const { id } = req.query;
-		fs.readFile(`./${new Date(+id).toISOString()}.csv`, (err, data) => {
+		exec(`ps -p ${id}`, (err, stdout) => {
 			if (err) {
-				return res.json({ status: 'In Processing', id });
+				return res.status(500).json({ status: 'Error', message: err.message || err });
 			}
+			let status = 'In Progress';
+			if (stdout.includes(id)) status = 'Completed';
 
-			res.json({ status: 'Completed', id });
+			res.json({ status });
 		});
 	} catch (e) {
 		errorHandler(res, e);
