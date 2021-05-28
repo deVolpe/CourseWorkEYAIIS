@@ -26,7 +26,7 @@ class Job {
 				const result = await getAllTransportPaths(allTransportParams);
 				paths.push(...result.paths);
 			} else paths.push(encodeURIComponent(this.path));
-			console.log(paths);
+
 			if (!this.station) {
 				const result = await Promise.all(
 					paths.map((path) => getAllTransportPathStations({ ...allTransportParams, path }))
@@ -54,12 +54,6 @@ class Job {
 	};
 }
 
-new Job()
-	.run()
-	.then(() => {
-		process.exit(0);
-	})
-	.catch((err) => {
-		console.error(err);
-		process.exit(1);
-	});
+new Job().run().then(() => {
+	process.exit(0);
+});

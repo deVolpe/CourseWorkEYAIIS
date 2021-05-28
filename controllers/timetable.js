@@ -2,6 +2,8 @@ import { spawn } from 'child_process';
 import errorHandler from '../utils/errorHandler.js';
 import { validateQueryString } from './validators/query.js';
 
+const CACHE = new Map();
+
 const createTimetableJob = (req, res) => {
 	const { errors, isValid } = validateQueryString({ ...req.query, ...req.body });
 
@@ -20,7 +22,7 @@ const createTimetableJob = (req, res) => {
 
 		const spawnProcess = spawn('node', [execFilePath, ...args]);
 		spawnProcess.stdout.on('data', (data) => {
-			console.log(`Data ${data}`);
+			console.log(`stdout: ${data}`);
 		});
 
 		spawnProcess.stderr.on('data', (data) => {
@@ -30,8 +32,9 @@ const createTimetableJob = (req, res) => {
 		spawnProcess.on('close', (code) => {
 			console.log(`Code ${code}`);
 		});
-
-		res.json({ status: 'Uploaded', id: spawnProcess.pid, date });
+		CACHE.set(spawnProcess.pid, date);
+		console.log(CACHE);
+		res.json({ status: 'Uploaded', id: spawnProcess.pid });
 	} catch (e) {
 		errorHandler(res, e);
 	}
@@ -41,7 +44,9 @@ const downloadTimetable = (req, res) => {
 	const id = req.query?.id || req.body?.id;
 	if (!id) return res.status(400).json({ status: 'Error', message: 'Id must not be null, undefined or empty string' });
 	try {
-		res.download(`./${id}.csv`);
+		console.log(CACHE);
+		if (!CACHE.has(id)) return res.status(404).json({ status: 'Error', message: 'No file found by process id' });
+		res.download(`data/${CACHE.get(id)}.csv`);
 	} catch (e) {
 		errorHandler(res, e);
 	}
