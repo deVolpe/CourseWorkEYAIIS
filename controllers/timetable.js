@@ -1,4 +1,5 @@
 import { spawn } from 'child_process';
+import fs from 'fs';
 import errorHandler from '../utils/errorHandler.js';
 import { validateQueryString } from './validators/query.js';
 
@@ -33,7 +34,6 @@ const createTimetableJob = (req, res) => {
 			console.log(`Code ${code}`);
 		});
 		CACHE.set(spawnProcess.pid, date);
-		console.log(CACHE);
 		res.json({ status: 'Uploaded', id: spawnProcess.pid });
 	} catch (e) {
 		errorHandler(res, e);
@@ -44,9 +44,11 @@ const downloadTimetable = (req, res) => {
 	const id = req.query?.id || req.body?.id;
 	if (!id) return res.status(400).json({ status: 'Error', message: 'Id must not be null, undefined or empty string' });
 	try {
-		console.log(CACHE);
-		if (!CACHE.has(id)) return res.status(404).json({ status: 'Error', message: 'No file found by process id' });
-		res.download(`data/${CACHE.get(id)}.csv`);
+		if (!CACHE.has(+id)) return res.status(404).json({ status: 'Error', message: 'No file found by process id' });
+		console.log(fs.readdirSync('.'));
+		console.log(fs.readdirSync('controllers'));
+		console.log(fs.readdirSync('controllers/handlers'));
+		res.download(`${CACHE.get(+id)}.csv`);
 	} catch (e) {
 		errorHandler(res, e);
 	}

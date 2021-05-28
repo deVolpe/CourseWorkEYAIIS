@@ -39,7 +39,7 @@ class Job {
 			const asyncParser = new AsyncParser(opts, transformOpts);
 
 			asyncParser.processor.pipe(
-				fs.createWriteStream(`timetables/${this.date}.csv`, {
+				fs.createWriteStream(`${this.date}.csv`, {
 					encoding: 'utf-8',
 				})
 			);
