@@ -1,10 +1,6 @@
 import fs from 'fs';
 import { AsyncParser } from 'json2csv';
-import {
-	getAllTransportPaths,
-	getAllTransportPathStations,
-	getTransportClosestDateTimeArriving,
-} from './handlers/timetable.js';
+import { getAllTransportPaths, getAllTransportPathStations, getTransportClosestDateTimeArriving } from './timetable.js';
 
 const fields = ['city', 'type', 'path', 'station', 'prev', 'next', 'after'];
 const opts = { fields };
@@ -28,9 +24,9 @@ class Job {
 		try {
 			if (!this.path) {
 				const result = await getAllTransportPaths(allTransportParams);
-				paths.push(...result.paths.map((p) => encodeURIComponent(p)));
+				paths.push(...result.paths);
 			} else paths.push(encodeURIComponent(this.path));
-
+			console.log(paths);
 			if (!this.station) {
 				const result = await Promise.all(
 					paths.map((path) => getAllTransportPathStations({ ...allTransportParams, path }))
@@ -43,7 +39,7 @@ class Job {
 			const asyncParser = new AsyncParser(opts, transformOpts);
 
 			asyncParser.processor.pipe(
-				fs.createWriteStream(`./${this.date}.csv`, {
+				fs.createWriteStream(`timetables/${this.date}.csv`, {
 					encoding: 'utf-8',
 				})
 			);
@@ -57,12 +53,13 @@ class Job {
 		}
 	};
 }
-console.log(process.argv);
+
 new Job()
 	.run()
 	.then(() => {
 		process.exit(0);
 	})
 	.catch((err) => {
+		console.error(err);
 		process.exit(1);
 	});

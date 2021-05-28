@@ -10,14 +10,14 @@ const createTimetableJob = (req, res) => {
 	}
 	const date = new Date().toISOString();
 	try {
-		const execFilePath = 'handlers/job';
+		const execFilePath = 'controllers/handlers/job';
 		const args = [];
 		args.push(req.query?.city || req.body?.city);
 		args.push(req.query?.type || req.body?.type);
-		args.push(req.query?.path || req.body?.path);
-		args.push(req.query?.station || req.body?.station);
+		args.push(req.query?.path || req.body?.path || '');
+		args.push(req.query?.station || req.body?.station || '');
 		args.push(date);
-		console.log(args);
+
 		const spawnProcess = spawn('node', [execFilePath, ...args]);
 		spawnProcess.stdout.on('data', (data) => {
 			console.log(`Data ${data}`);

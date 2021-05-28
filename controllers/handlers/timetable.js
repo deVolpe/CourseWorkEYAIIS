@@ -1,9 +1,7 @@
 import cheerio from 'cheerio';
 import axios from '../../axios_config.js';
 
-const getAllTransportPaths = async (
-	params = { city: 'brest', type: 'autobus' }
-) => {
+const getAllTransportPaths = async (params = { city: 'brest', type: 'autobus' }) => {
 	try {
 		const res = await axios(`${params.city}/${params.type}`),
 			$ = cheerio.load(res.data),
@@ -19,9 +17,7 @@ const getAllTransportPaths = async (
 	}
 };
 
-const getAllTransportPathStations = async (
-	params = { city: 'brest', type: 'autobus', path: '1' }
-) => {
+const getAllTransportPathStations = async (params = { city: 'brest', type: 'autobus', path: '1' }) => {
 	const url = `${params.city}/${params.type}/${params.path}/`;
 	try {
 		const res = await axios(url),
@@ -69,8 +65,4 @@ const getTransportClosestDateTimeArriving = async (
 	}
 };
 
-export {
-	getAllTransportPaths,
-	getAllTransportPathStations,
-	getTransportClosestDateTimeArriving,
-};
+export { getAllTransportPaths, getAllTransportPathStations, getTransportClosestDateTimeArriving };
