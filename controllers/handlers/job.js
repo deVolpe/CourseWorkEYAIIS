@@ -16,7 +16,7 @@ class Job {
 		this.type = process.argv[3];
 		this.path = process.argv[4];
 		this.station = process.argv[5];
-		this.pid = process.pid;
+		this.date = process.argv[6];
 	}
 
 	run = async () => {
@@ -43,7 +43,7 @@ class Job {
 			const asyncParser = new AsyncParser(opts, transformOpts);
 
 			asyncParser.processor.pipe(
-				fs.createWriteStream(`./${this.pid}.csv`, {
+				fs.createWriteStream(`./${this.date}.csv`, {
 					encoding: 'utf-8',
 				})
 			);
@@ -57,7 +57,7 @@ class Job {
 		}
 	};
 }
-
+console.log(process.argv);
 new Job()
 	.run()
 	.then(() => {
