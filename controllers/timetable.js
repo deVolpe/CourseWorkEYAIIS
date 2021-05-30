@@ -1,12 +1,11 @@
 import { spawn } from 'child_process';
-import fs from 'fs';
 import errorHandler from '../utils/errorHandler.js';
-import { validateQueryString } from './validators/query.js';
+import { validateRequest } from './validators/request.js';
 
 const CACHE = new Map();
 
 const createTimetableJob = (req, res) => {
-	const { errors, isValid } = validateQueryString({ ...req.query, ...req.body });
+	const { errors, isValid } = validateRequest(req.body);
 
 	if (!isValid) {
 		return res.status(400).json(errors);
@@ -15,10 +14,10 @@ const createTimetableJob = (req, res) => {
 	try {
 		const execFilePath = 'controllers/handlers/job';
 		const args = [];
-		args.push(req.query?.city || req.body?.city);
-		args.push(req.query?.type || req.body?.type);
-		args.push(req.query?.path || req.body?.path || '');
-		args.push(req.query?.station || req.body?.station || '');
+		args.push(req.body.city);
+		args.push(req.body.type);
+		args.push(req.body.path || '');
+		args.push(req.body.station || '');
 		args.push(date);
 
 		const spawnProcess = spawn('node', [execFilePath, ...args]);
@@ -41,13 +40,10 @@ const createTimetableJob = (req, res) => {
 };
 
 const downloadTimetable = (req, res) => {
-	const id = req.query?.id || req.body?.id;
+	const id = req.body.id;
 	if (!id) return res.status(400).json({ status: 'Error', message: 'Id must not be null, undefined or empty string' });
 	try {
 		if (!CACHE.has(+id)) return res.status(404).json({ status: 'Error', message: 'No file found by process id' });
-		console.log(fs.readdirSync('.'));
-		console.log(fs.readdirSync('controllers'));
-		console.log(fs.readdirSync('controllers/handlers'));
 		res.download(`${CACHE.get(+id)}.csv`);
 	} catch (e) {
 		errorHandler(res, e);
@@ -55,7 +51,7 @@ const downloadTimetable = (req, res) => {
 };
 
 const getJobStatus = (req, res) => {
-	const id = req.query?.id || req.body?.id;
+	const id = req.query.id;
 	if (!id) return res.status(400).json({ status: 'Error', message: 'Id must not be null, undefined or empty string' });
 	try {
 		process.kill(id, 0);
