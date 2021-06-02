@@ -16,7 +16,7 @@ const createTimetableJob = (req, res) => {
 		const args = [];
 		args.push(req.body.city);
 		args.push(req.body.type);
-		args.push(req.body.path || '');
+		args.push(req.body.number || '');
 		args.push(req.body.station || '');
 		args.push(date);
 
@@ -54,7 +54,7 @@ const getJobStatus = (req, res) => {
 	const id = req.query.id;
 	if (!id) return res.status(400).json({ status: 'Error', message: 'Id must not be null, undefined or empty string' });
 	try {
-		process.kill(id, 0);
+		process.kill(+id, 0);
 		res.json({ status: 'In Progress' });
 	} catch (e) {
 		res.json({ status: 'Completed' });

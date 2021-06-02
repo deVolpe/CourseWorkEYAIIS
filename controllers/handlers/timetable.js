@@ -1,24 +1,24 @@
 import cheerio from 'cheerio';
 import axios from '../../axios_config.js';
 
-const getAllTransportPaths = async (params = { city: 'brest', type: 'autobus' }) => {
+const getAllTransportNumbers = async (params = { city: 'brest', type: 'autobus' }) => {
 	try {
 		const res = await axios(`${params.city}/${params.type}`),
 			$ = cheerio.load(res.data),
 			html = $('a.btn.btn-primary.bold.route'),
-			paths = [];
+			numbers = [];
 		for (let i = 0; i < html.length; i++) {
 			const href = html[i].attribs.href;
-			paths.push(href.slice(href.lastIndexOf('/') + 1));
+			numbers.push(href.slice(href.lastIndexOf('/') + 1));
 		}
-		return { ...params, paths };
+		return { ...params, numbers };
 	} catch (e) {
 		throw new Error(e);
 	}
 };
 
-const getAllTransportPathStations = async (params = { city: 'brest', type: 'autobus', path: '1' }) => {
-	const url = `${params.city}/${params.type}/${params.path}/`;
+const getAllTransportRouteStations = async (params = { city: 'brest', type: 'autobus', number: '1' }) => {
+	const url = `${params.city}/${params.type}/${params.number}/`;
 	try {
 		const res = await axios(url),
 			$ = cheerio.load(res.data),
@@ -38,11 +38,11 @@ const getTransportClosestDateTimeArriving = async (
 	params = {
 		city: 'brest',
 		type: 'autobus',
-		path: '1',
+		number: '1',
 		station: 'Газоаппарат%20-%20Бернады/Университет',
 	}
 ) => {
-	const url = `${params.city}/${params.type}/${params.path}/${params.station}`;
+	const url = `${params.city}/${params.type}/${params.number}/${params.station}`;
 	try {
 		const res = await axios(url),
 			$ = cheerio.load(res.data);
@@ -50,19 +50,20 @@ const getTransportClosestDateTimeArriving = async (
 		const html = $('div.timetable>span'),
 			prev = html[0] ? html[0].children[0].data.trim() : '',
 			next = html[1] ? html[1].children[0].data.trim() : '',
-			after = html[2] ? html[2].children[0].data.trim() : '';
-
+			after = html[2] ? html[2].children[0].data.trim() : '',
+			[route, station] = decodeURIComponent(params.station).split('/');
 		return {
 			...params,
 			next,
 			prev,
 			after,
-			station: decodeURIComponent(params.station),
-			path: decodeURIComponent(params.path),
+			station,
+			route,
+			number: decodeURIComponent(params.number),
 		};
 	} catch (e) {
 		throw new Error(e);
 	}
 };
 
-export { getAllTransportPaths, getAllTransportPathStations, getTransportClosestDateTimeArriving };
+export { getAllTransportNumbers, getAllTransportRouteStations, getTransportClosestDateTimeArriving };

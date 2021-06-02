@@ -1,5 +1,7 @@
 const CITIES = ['minsk', 'brest', 'grodno', 'gomel', 'vitebsk', 'mogilev'];
 
+const TYPES = ['autobus', 'trolleybus'];
+
 const validateRequest = (data) => {
 	const errors = [];
 
@@ -15,8 +17,12 @@ const validateRequest = (data) => {
 		errors.push({ type: 'missed_value', param: 'type', message: 'Type param is empty or not valid' });
 	}
 
-	if (!data.path && data.station) {
-		errors.push({ type: 'missed_value', param: 'path', message: 'The path must be specified' });
+	if (!TYPES.includes(data.type)) {
+		errors.push({ type: 'missed_value', param: 'type', message: 'Type param is empty or not valid' });
+	}
+
+	if (!data.number && data.station) {
+		errors.push({ type: 'missed_value', param: 'number', message: 'The number must be specified' });
 	}
 	return { errors, isValid: !Object.keys(errors).length };
 };

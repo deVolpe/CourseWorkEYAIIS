@@ -1,8 +1,12 @@
 import fs from 'fs';
 import { AsyncParser } from 'json2csv';
-import { getAllTransportPaths, getAllTransportPathStations, getTransportClosestDateTimeArriving } from './timetable.js';
+import {
+	getAllTransportNumbers,
+	getAllTransportRouteStations,
+	getTransportClosestDateTimeArriving,
+} from './timetable.js';
 
-const fields = ['city', 'type', 'path', 'station', 'prev', 'next', 'after'];
+const fields = ['city', 'type', 'route', 'number', 'station', 'prev', 'next', 'after'];
 const opts = { fields };
 const transformOpts = { highWaterMark: 8192 };
 
@@ -10,31 +14,31 @@ class Job {
 	constructor() {
 		this.city = process.argv[2];
 		this.type = process.argv[3];
-		this.path = process.argv[4];
+		this.number = process.argv[4];
 		this.station = process.argv[5];
 		this.date = process.argv[6];
 	}
 
 	run = async () => {
-		const paths = [],
+		const numbers = [],
 			_stations = [];
 
 		const allTransportParams = { city: this.city, type: this.type };
 
 		try {
-			if (!this.path) {
-				const result = await getAllTransportPaths(allTransportParams);
-				paths.push(...result.paths);
-			} else paths.push(encodeURIComponent(this.path));
+			if (!this.number) {
+				const result = await getAllTransportNumbers(allTransportParams);
+				numbers.push(...result.numbers);
+			} else numbers.push(encodeURIComponent(this.number));
 
 			if (!this.station) {
 				const result = await Promise.all(
-					paths.map((path) => getAllTransportPathStations({ ...allTransportParams, path }))
+					numbers.map((number) => getAllTransportRouteStations({ ...allTransportParams, number }))
 				);
-				result.forEach(({ city, path, type, stations }) => {
-					_stations.push(...stations.map((station) => ({ city, type, path, station })));
+				result.forEach(({ city, number, type, stations }) => {
+					_stations.push(...stations.map((station) => ({ city, type, number, station })));
 				});
-			} else _stations.push({ ...allTransportParams, path: this.path, station: this.station });
+			} else _stations.push({ ...allTransportParams, number: this.number, station: this.station });
 
 			const asyncParser = new AsyncParser(opts, transformOpts);
 
