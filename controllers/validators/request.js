@@ -8,14 +8,14 @@ const validateRequest = (data) => {
 	}
 
 	if (!CITIES.includes(data.city)) {
-		errors.push({ type: 'invalid_value', param: 'city', message: 'City is not valid' });
+		errors.push({ type: 'unsupported_value', param: 'city', message: "City is not supported or doesn't exist" });
 	}
 
 	if (!data.type) {
 		errors.push({ type: 'missed_value', param: 'type', message: 'Type param is empty or not valid' });
 	}
 
-	if (data.path && !data.station) {
+	if (!data.path && data.station) {
 		errors.push({ type: 'missed_value', param: 'path', message: 'The path must be specified' });
 	}
 	return { errors, isValid: !Object.keys(errors).length };
