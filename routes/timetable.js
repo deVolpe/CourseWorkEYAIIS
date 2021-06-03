@@ -5,5 +5,5 @@ const router = express.Router();
 
 router.post('/timetable', controller.createTimetableJob);
 router.get('/timetable/status', controller.getJobStatus);
-router.post('/timetable/download', controller.downloadTimetable);
+router.get('/timetable/download', controller.downloadTimetable);
 export default router;
