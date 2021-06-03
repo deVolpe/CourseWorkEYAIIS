@@ -38,7 +38,7 @@ class Job {
 				result.forEach(({ city, number, type, stations }) => {
 					_stations.push(...stations.map((station) => ({ city, type, number, station })));
 				});
-			} else _stations.push({ ...allTransportParams, number: this.number, station: this.station });
+			} else _stations.push({ ...allTransportParams, number: this.number, station: encodeURIComponent(this.station) });
 
 			const asyncParser = new AsyncParser(opts, transformOpts);
 
