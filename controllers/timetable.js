@@ -54,6 +54,7 @@ const getJobStatus = (req, res) => {
 	const { id } = req.query;
 	if (!id) return res.status(400).json({ status: 'Error', message: 'Id must not be null, undefined or empty string' });
 	try {
+		if (!CACHE.has(+id)) return res.status(404).json({ status: 'Error', message: 'No process found by id' });
 		process.kill(+id, 0);
 		res.json({ status: 'In Progress' });
 	} catch (e) {
